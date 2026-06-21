@@ -1,5 +1,7 @@
 # tts-pause-audit
 
+English · [中文](README.zh.md)
+
 > Detect **unnatural pauses** in TTS audio, locate them precisely with **acoustic energy valleys**, then let an **LLM judge** which ones a listener would actually find weird.
 
 Built on top of [Qwen3-ASR-0.6B](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) and [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B), with the LLM judgment going through any OpenAI-compatible endpoint (DashScope-compatible mode by default).
