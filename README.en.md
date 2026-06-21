@@ -1,6 +1,6 @@
 # tts-pause-audit
 
-English · [中文](README.zh.md)
+English · [中文](README.md)
 
 > Detect **unnatural pauses** in TTS audio, locate them precisely with **acoustic energy valleys**, then let an **LLM judge** which ones a listener would actually find weird.
 
