@@ -1,16 +1,16 @@
 # tts-pause-audit
 
-English · [中文](README.zh.md)
+[English](README.en.md) · 中文
 
-> Detect **unnatural pauses** in TTS audio, locate them precisely with **acoustic energy valleys**, then let an **LLM judge** which ones a listener would actually find weird.
+> 用 **声学能量谷**精确定位 TTS 音频里的不自然停顿，再让 **LLM 判定**哪些停顿真的会让听众觉得别扭。
 
-Built on top of [Qwen3-ASR-0.6B](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) and [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B), with the LLM judgment going through any OpenAI-compatible endpoint (DashScope-compatible mode by default).
+基于 [Qwen3-ASR-0.6B](https://huggingface.co/Qwen/Qwen3-ASR-0.6B) + [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B)，LLM 判定走任意 OpenAI 兼容端点（默认指向 DashScope 兼容模式）。
 
-## What it catches
+## 它能抓到什么
 
-Five complementary signals, each addressing a different way TTS pauses can go wrong:
+5 类互补的信号，每一类对应一种 TTS 停顿可能"出错"的方式：
 
-| Signal | "我抓的是" | 严重度 |
+| 信号 | 我抓的是 | 严重度 |
 |---|---|---|
 | `S1 inter_char` | 不该断的地方断了 | ★★★（最常见的 TTS 毛病） |
 | `S2 char_too_long` | 字被拖长，藏了静音 | ★★（反向定位的关键） |
@@ -20,9 +20,9 @@ Five complementary signals, each addressing a different way TTS pauses can go wr
 
 详细原理见 [`docs/signals.md`](docs/signals.md)。
 
-## Example report
+## 示例报告
 
-Below is a snippet from [`examples/example_report.md`](examples/example_report.md) (rendered from one of the bundled samples). Issues jump out visually.
+下面这段截选自 [`examples/example_report.md`](examples/example_report.md)（从内置样本之一渲染得到），异常位置一眼可见。
 
 > ⏮320ms 刚收到快递，发现是男朋友 **❌350ms** 偷偷寄来的 **❌300ms** 生日蛋糕。 ✓320ms 虽然隔着屏幕， ✓320ms 但这份心 ✓320ms **❌210ms** 意让我笑得合不拢嘴。 ⏭490ms
 
@@ -35,40 +35,40 @@ Below is a snippet from [`examples/example_report.md`](examples/example_report.m
 
 🚩 **需要关注**：
 - ❌ **友 → 偷** @ 2.50s · `inter_char` · 350ms · *切开固定词"男朋友"*
-- ❌ **的 → 生** @ 3.55s · `inter_char` · 300ms · *切开'寄来的'与'生日蛋糕'*
+- ❌ **的 → 生** @ 3.55s · `inter_char` · 300ms · *切开"寄来的"与"生日蛋糕"*
 - ❌ **心 → 意** @ 7.04s · `inter_char` · 210ms · *切开固定词"心意"*
 
-## Quickstart
+## 快速开始
 
-### 1. Install
+### 1. 安装
 
-We recommend a fresh Python 3.12 environment.
+建议用全新的 Python 3.12 环境。
 
 ```bash
 conda create -n tts-pause-audit python=3.12 -y
 conda activate tts-pause-audit
 pip install tts-pause-audit
-# or, from source:
+# 或者从源码安装：
 git clone https://github.com/notedit/tts-pause-audit.git
 cd tts-pause-audit
 pip install -e .
 ```
 
-CUDA tip: install a `torch` build that matches your driver (e.g. `pip install torch==2.5.1+cu121 -i https://download.pytorch.org/whl/cu121`). If you see `Error 803: system has unsupported display driver / cuda driver combination`, try `unset LD_LIBRARY_PATH` before running.
+CUDA 提示：装匹配你显卡驱动的 `torch`（比如 `pip install torch==2.5.1+cu121 -i https://download.pytorch.org/whl/cu121`）。如果遇到 `Error 803: system has unsupported display driver / cuda driver combination`，先 `unset LD_LIBRARY_PATH` 再跑。
 
-### 2. Get the models
+### 2. 下载模型
 
 ```bash
-# Either ModelScope (recommended in Mainland China)
+# ModelScope（推荐国内用户）
 modelscope download --model Qwen/Qwen3-ASR-0.6B            --local_dir ./models/Qwen3-ASR-0.6B
 modelscope download --model Qwen/Qwen3-ForcedAligner-0.6B  --local_dir ./models/Qwen3-ForcedAligner-0.6B
 
-# Or Hugging Face
+# 或者 Hugging Face
 huggingface-cli download Qwen/Qwen3-ASR-0.6B           --local-dir ./models/Qwen3-ASR-0.6B
 huggingface-cli download Qwen/Qwen3-ForcedAligner-0.6B --local-dir ./models/Qwen3-ForcedAligner-0.6B
 ```
 
-The tool reads paths from these env vars (defaults shown):
+工具会读以下环境变量定位模型（括号为默认值）：
 
 ```bash
 export QWEN3_ASR_PATH=./models/Qwen3-ASR-0.6B
@@ -76,60 +76,60 @@ export QWEN3_FA_PATH=./models/Qwen3-ForcedAligner-0.6B
 export QWEN3_DEVICE=cuda:0
 ```
 
-### 3. Configure the LLM
+### 3. 配置 LLM
 
-Any OpenAI-compatible endpoint works. Defaults point to DashScope's OpenAI-compatible mode:
+任何 OpenAI 兼容端点都能用。默认指向 DashScope 的 OpenAI 兼容模式：
 
 ```bash
-export OPENAI_API_KEY=sk-...                            # DASHSCOPE_API_KEY also accepted
+export OPENAI_API_KEY=sk-...                            # 也接受 DASHSCOPE_API_KEY
 export OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-export PAUSE_LLM_MODEL=qwen-plus                        # or qwen3-max for tighter judgments
+export PAUSE_LLM_MODEL=qwen-plus                        # 想要更严格的判定可用 qwen3-max
 ```
 
-### 4. Run
+### 4. 跑
 
 ```bash
-# detect + LLM judge in one shot
+# 检测 + LLM 判定一气呵成
 tts-pause-audit run_pauses examples/audios/*.wav --json out.json --model qwen3-max
 
-# or two steps (cheap detect first, judge later)
+# 或拆两步（先便宜地检测，再单独判定）
 tts-pause-audit detect_pauses examples/audios/*.wav --json out.json
 tts-pause-audit judge_pauses out.json --model qwen3-max
 
-# render a markdown report (with per-file LLM summaries)
+# 渲染 markdown 报告（含整句 LLM 总结）
 tts-pause-audit report_pauses out.json --md report.md --summary --model qwen3-max
 ```
 
-`tts-pause-audit --list` prints every registered subcommand.
+`tts-pause-audit --list` 列出所有已注册的子命令。
 
-## CLI reference
+## CLI 命令一览
 
-| Command | Purpose |
+| 命令 | 用途 |
 |---|---|
-| `transcribe` | Plain Qwen3-ASR transcription, with optional char-level timestamps. |
-| `detect_pauses` | Pure-acoustic 5-signal detection. No LLM call, no API key needed. |
-| `judge_pauses` | Send each `suspicious=true` finding in a detect-JSON to an OpenAI-compatible LLM; writes back `llm_natural` / `llm_reason`. |
-| `run_pauses` | `detect_pauses` then `judge_pauses` in one go. Use `--no-llm` to skip the LLM. |
-| `report_pauses` | Render a JSON payload as a markdown report (annotated transcript + ASCII timeline + focused issues + full table). With `--summary` it also calls the LLM for a 1-2 sentence per-file verdict. |
+| `transcribe` | 纯 Qwen3-ASR 转录，可选返回字符级时间戳 |
+| `detect_pauses` | 纯声学的 5 信号检测，**不需要** API key |
+| `judge_pauses` | 把检测 JSON 中所有 `suspicious=true` 的项送到 OpenAI 兼容 LLM；写回 `llm_natural` / `llm_reason` |
+| `run_pauses` | 一步完成 `detect_pauses` + `judge_pauses`；可加 `--no-llm` 跳过判定 |
+| `report_pauses` | 把 JSON 渲染成 markdown 报告（标注转录 + ASCII 时间轴 + 重点列表 + 全表）。加 `--summary` 会让 LLM 给每个文件写一两句整句总结 |
 
-LLM-related flags everywhere: `--api-key`, `--base-url`, `--model`. CLI > env > default.
+LLM 相关参数全部通用：`--api-key`、`--base-url`、`--model`。优先级：CLI > 环境变量 > 默认值。
 
-## How it works
+## 工作原理
 
 ```
 audio.wav
-  ├─ Qwen3-ASR + Qwen3-FA  →  text + char-level timestamps
-  ├─ RMS-dB envelope (p90 baseline)  →  energy valleys
-  └─ 5-signal joint analysis  →  findings[]
+  ├─ Qwen3-ASR + Qwen3-FA  →  文本 + 字级时间戳
+  ├─ RMS-dB 包络（p90 基线） →  能量谷
+  └─ 5 信号联合分析  →  findings[]
         ↓
-   build JSON payload  (compat with pause_detect.py findings_to_payload)
+   JSON 输出  （字段与原 pause_detect.py findings_to_payload 对齐）
         ↓
-   OpenAI-compatible LLM judge  →  llm_natural / llm_reason per finding
+   OpenAI 兼容 LLM 判定  →  每个 finding 加 llm_natural / llm_reason
         ↓
-   markdown report (annotated text + timeline + table + per-file summary)
+   markdown 报告（标注文本 + 时间轴 + 表格 + 整句总结）
 ```
 
-## JSON output shape
+## JSON 输出契约
 
 ```json
 {
@@ -158,9 +158,9 @@ audio.wav
 }
 ```
 
-## Extending — adding a new capability
+## 添加能力（扩展）
 
-Capabilities are auto-registered. Drop a new file in `pause_detector/tools/`:
+能力是自动注册的。在 `pause_detector/tools/` 下加一个新文件：
 
 ```python
 # pause_detector/tools/my_tool.py
@@ -170,36 +170,36 @@ from ..registry import tool
 def _add_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("audio")
 
-@tool("my_tool", "What it does in one sentence.", _add_args)
+@tool("my_tool", "一句话描述这个工具能干嘛。", _add_args)
 def my_tool_cmd(args: argparse.Namespace) -> int:
     print("hello", args.audio)
     return 0
 ```
 
-Then add `from . import my_tool` in `pause_detector/tools/__init__.py`. `tts-pause-audit --list` will pick it up automatically.
+然后在 `pause_detector/tools/__init__.py` 里加一行 `from . import my_tool`。`tts-pause-audit --list` 就能看到新命令。
 
-## Sample data
+## 样例数据
 
-`examples/audios/` ships four ~8s Chinese TTS clips. They map to the calibrated samples A–D embedded in the LLM system prompt (`pause_detector/prompts.py`):
+`examples/audios/` 自带 4 条约 8 秒的中文 TTS 片段，对应 LLM system prompt（`pause_detector/prompts.py`）里 5 条已校准样例 A–D：
 
-| File | Calibrated sample | Expected issues |
+| 文件 | 校准样例 | 预期问题 |
 |---|---|---|
 | `audio_v-female-T3P8sZ0Q_0006(6).wav` | A | "男朋友" / "寄来的生日" 被切 |
 | `audio_v-female-T3P8sZ0Q_0021(5).wav` | B | "违反规则在先" 被切 |
 | `audio_v-female-T3P8sZ0Q_0022(5).wav` | C | 全句流畅 |
 | `audio_v-female-T3P8sZ0Q_0025(5).wav` | D | "保修" 接代词刺耳 |
 
-A pre-rendered markdown report is at [`examples/example_report.md`](examples/example_report.md).
+预渲染好的 markdown 报告：[`examples/example_report.md`](examples/example_report.md)。
 
-## Acknowledgements
+## 致谢
 
-This project depends on, but does not modify, the upstream open-source releases from the Alibaba Qwen team:
+本项目依赖（但**不修改**）阿里 Qwen 团队的开源发布：
 
-- [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) (Apache-2.0)
+- [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR)（Apache-2.0）
 - [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B)
 
-The pause-detection algorithm and LLM-judgment system prompt were ported from an internal DashScope-based reference (`docs/legacy/pause_detect_dashscope.py`).
+停顿检测算法和 LLM 判定 system prompt 移植自内部一份基于 DashScope 的参考实现（`docs/legacy/pause_detect_dashscope.py`）。
 
-## License
+## 许可证
 
-[MIT](LICENSE).
+[MIT](LICENSE)。
