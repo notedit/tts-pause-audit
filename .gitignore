@@ -1,0 +1,39 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+*.whl
+
+# venv / conda
+.venv/
+.env/
+venv/
+env/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pre-rendered reports / scratch artifacts
+*.json.bak
+/scratch/
+
+# Local model weights — never commit gigabytes
+/models/
+*.safetensors
+*.bin
+*.pt
+
+# Local-only env / secrets
+.env
