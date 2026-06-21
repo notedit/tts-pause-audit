@@ -1,8 +1,9 @@
-"""Agent CLI entry point.
+"""tts-pause-audit CLI entry point.
 
 Usage:
-  python -m agent <tool> [args...]
-  python -m agent --list
+  tts-pause-audit <tool> [args...]
+  tts-pause-audit --list
+  python -m pause_detector <tool> [args...]
 """
 
 import argparse
@@ -12,11 +13,19 @@ from . import all_tools, get_tool
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(prog="agent", description="Qwen3-ASR audio analysis agent")
-    sub = parser.add_subparsers(dest="cmd")
-    parser.add_argument("--list", action="store_true", help="list registered tools and exit")
+    # Trigger @tool registration. We do this lazily here (not in
+    # pause_detector/__init__.py) so importing helpers like
+    # `pause_detector.text_align` does not pull in torch / qwen-asr.
+    from . import tools  # noqa: F401  (side effects)
 
-    # Register every tool as a subcommand.
+    parser = argparse.ArgumentParser(
+        prog="tts-pause-audit",
+        description="Qwen3-ASR-based TTS pause auditor.",
+    )
+    sub = parser.add_subparsers(dest="cmd")
+    parser.add_argument("--list", action="store_true",
+                        help="list registered tools and exit")
+
     for spec in all_tools():
         sp = sub.add_parser(spec.name, help=spec.summary)
         if spec.add_arguments:
